@@ -16,7 +16,7 @@ class Help(commands.Cog):
     for cmd in os.listdir('commands'):
         if not cmd.startswith('_') and cmd[:-3] != 'help' and cmd.endswith('.py'):
             command = importlib.import_module(f'commands.{cmd[:-3]}')
-            command_list += f"</{cmd[:-3]}:{int(command.id)}>"
+            command_list += f"</{cmd[:-3]}:{int(command.id)}>\n"
     
     embed = discord.Embed(
         description=command_list

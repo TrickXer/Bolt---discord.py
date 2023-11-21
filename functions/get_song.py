@@ -26,6 +26,10 @@ ffmpeg_options = {
 
 ytdl = youtube_dl.YoutubeDL(ytdl_format_options)
 
+def search(query: str) -> dict:
+        search = VideosSearch(query, limit=1)
+        return search.result()['result'][0]
+
 class YTDLSource(discord.PCMVolumeTransformer):
     def __init__(self, source, data, volume: float = 1):
         super().__init__(source, volume)
@@ -47,3 +51,4 @@ class YTDLSource(discord.PCMVolumeTransformer):
         
         return cls(source=discord.FFmpegPCMAudio(data['url'], **ffmpeg_options), data=data)
     
+# print(search('never have i felt like this'))

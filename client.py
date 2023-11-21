@@ -5,7 +5,7 @@ import dotenv
 import os
 
 
-dotenv.load_dotenv()
+dotenv.load_dotenv(dotenv_path="bolt-env/.env")
 
 log = logging.getLogger("discord")
 

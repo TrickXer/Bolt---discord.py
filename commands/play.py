@@ -1,8 +1,13 @@
+from functions.get_song import search
 from discord.ext import commands
 from discord import app_commands
-from functions.get_song import search
 import discord
 import re
+
+
+class InvalidQueryException(Exception):
+    """Raised when the query is empty or None"""
+    pass
 
 
 id = "1044552464382308372"
@@ -12,16 +17,15 @@ class Play(commands.Cog):
         self.client = client
         
     async def create_embed(self, ctx, query) -> discord.Embed:
-        await ctx.typing()
         result = search(query=query)
-        
+    
         song_embed = discord.Embed(
             colour=discord.Colour.brand_red(),
             title=result['title'],
             description=re.sub(r'\W+', ' ', result['descriptionSnippet'][0]['text']),
             url=result['link']
         )
-        
+    
         song_embed.set_thumbnail(url=result['thumbnails'][0]['url'])
         
         song_embed.add_field(name='Channel', value=f"[{result['channel']['name']}]({result['channel']['link']})", inline=True)
@@ -30,18 +34,21 @@ class Play(commands.Cog):
         song_embed.add_field(name='Position in queue', value=f"`1`")
         
         song_embed.set_footer(text=f"\nRequesed by {ctx.message.author.display_name}", icon_url=ctx.message.author.display_avatar)
-        
+    
         return song_embed
     
     @commands.command()
     async def play(self, ctx):
         try:
-            query = ' '.join(re.sub('play', '', ctx.message.content).split(' ')[1:])
-            
-            
-            song_embed = await self.create_embed(ctx=ctx, query=query)
-            await ctx.send(embed = song_embed)
-        except Exception as e:
+            async with ctx.typing():
+                query = ' '.join(re.sub('play', '', ctx.message.content).split(' ')[1:])
+                
+                if (query == ' ' or query == '' or query == None): 
+                    raise InvalidQueryException
+                else: 
+                    song_embed = await self.create_embed(ctx=ctx, query=query)
+                    await ctx.send(embed = song_embed)
+        except InvalidQueryException:
             await ctx.send("> `play` command must contain an argument ❌")
     
     @app_commands.command(name='play', description="play's songs as per your request")
