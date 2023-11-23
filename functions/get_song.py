@@ -1,4 +1,5 @@
 from youtubesearchpython import VideosSearch
+from discord.ext import commands
 import yt_dlp as youtube_dl
 import discord
 import asyncio
@@ -21,14 +22,11 @@ ytdl_format_options = {
 }
 
 ffmpeg_options = {
-    'options': '-vn'
+    'options': '-vn',
+    "before_options": "-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5"
 }
 
 ytdl = youtube_dl.YoutubeDL(ytdl_format_options)
-
-def search(query: str) -> dict:
-        search = VideosSearch(query, limit=1)
-        return search.result()['result'][0]
 
 class YTDLSource(discord.PCMVolumeTransformer):
     def __init__(self, source, data, volume: float = 1):
@@ -37,18 +35,17 @@ class YTDLSource(discord.PCMVolumeTransformer):
         self.data = data
         self.title = data.get('title')
 
-
+    @classmethod
     def search(self, query: str) -> dict:
         search = VideosSearch(query, limit=1)
         return search.result()['result'][0]
 
     @classmethod
-    def stream(cls, self, loop=None, query: str = 'Never have I felt like this'):
-        result = self.search(query=query)
-        
+    async def stream(cls, url, loop=None):        
         loop = loop or asyncio.get_event_loop()
-        data = loop.run_in_executor(None, lambda: ytdl.extract_info(url=result['link'], download=False))
+        data = await loop.run_in_executor(None, lambda: ytdl.extract_info(url=url, download=False))
         
         return cls(source=discord.FFmpegPCMAudio(data['url'], **ffmpeg_options), data=data)
     
 # print(search('never have i felt like this'))
+            
