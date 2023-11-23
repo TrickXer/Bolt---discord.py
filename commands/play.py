@@ -22,7 +22,7 @@ class Play(commands.Cog):
         song_embed = discord.Embed(
             colour=discord.Colour.brand_red(),
             title=result['title'],
-            # description=re.sub(r'\W+', ' ', result['descriptionSnippet'][0]['text']),
+            description=re.sub(r'\W+', ' ', result['descriptionSnippet'][0]['text']),
             url=result['link']
         )
     
@@ -52,10 +52,15 @@ class Play(commands.Cog):
         self.servers[ctx.voice_client.guild.id].pop(0)
         
         if self.servers[ctx.voice_client.guild.id]:
-            ctx.voice_client.play(self.servers[ctx.voice_client.guild.id][0]['song'], after=lambda e=None: self.handle_skip(ctx, e))
-            await ctx.send('test')
+            ctx.voice_client.play(self.servers[ctx.voice_client.guild.id][0]['song'], after=lambda e=None: self.client.loop.create_task(self.handle_skip(ctx, e)))
+            
+            song_embed = self.servers[ctx.voice_client.guild.id][0]['embed']
+            song_embed.set_author(name="Now Playing")
+            song_embed.set_field_at(3, name='Position in queue', value=f"`{len(self.servers[ctx.voice_client.guild.id])}`")  
+            
+            await ctx.send(embed = song_embed)
         else:
-            await ctx.send("No songs in queue")  
+            await ctx.send("> No songs in queue")  
             
     @commands.command()
     async def skip(self, ctx):
@@ -63,7 +68,7 @@ class Play(commands.Cog):
             if ctx.voice_client.is_playing():
                 ctx.voice_client.stop()
         else:
-            await ctx.send("No songs in queue")   
+            await ctx.send("> No songs in queue")
         
     @commands.command()
     async def stop(self, ctx):
@@ -98,7 +103,7 @@ class Play(commands.Cog):
                         song_embed.set_author(name="Now Playing")
                         self.servers[ctx.voice_client.guild.id] = [{'song': source, 'embed': song_embed, 'count': 1, 'by': ctx.author.id}]
                         
-                        ctx.voice_client.play(self.servers[ctx.voice_client.guild.id][0]['song'], after=lambda e=None: self.handle_skip(ctx, e))
+                        ctx.voice_client.play(self.servers[ctx.voice_client.guild.id][0]['song'], after=lambda e=None: self.client.loop.create_task(self.handle_skip(ctx, e)))
                     
                     else:
                         song_embed.set_author(name="Added to queue")
