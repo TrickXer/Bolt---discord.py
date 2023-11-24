@@ -1,3 +1,4 @@
+from activity import BoltActivity
 from discord.ext import commands
 import logging
 import discord
@@ -15,6 +16,7 @@ class Client(commands.Bot):
     
     async def on_ready(self) -> None:
         log.info(f"Logged in as {self.user}")
+        await client.change_presence(status=discord.Status.online, activity=BoltActivity().activity())
         
     async def setup_hook(self) -> None:
         for cmd in os.listdir('commands'):
@@ -29,5 +31,5 @@ intents = discord.Intents.default()
 intents.message_content = True
 
 client = Client(command_prefix=os.getenv('CMD_PREFIX'), intents=intents)
-client.remove_command('help')
+
 client.run(os.getenv('TOKEN'))

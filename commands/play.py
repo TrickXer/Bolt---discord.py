@@ -38,7 +38,9 @@ class Play(commands.Cog):
     
     async def join(self, ctx):
         if ctx.author.voice:
-            await ctx.author.voice.channel.connect()
+            channel = ctx.author.voice.channel
+            await channel.connect()
+            await ctx.voice_client.guild.change_voice_state(channel=channel, self_deaf=True)
         else:
             raise commands.CommandError("Author not connected to voice channel.")
         
